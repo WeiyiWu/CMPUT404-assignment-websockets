@@ -47,15 +47,17 @@ world = {};
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
     with(context) {
-        beginPath();                
+        beginPath();              
         lineWidth = 3;
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        // https://www.w3schools.com/tags/canvas_drawimage.asp
+        // image from: 
+        // https://www.clipartmax.com/middle/m2H7K9m2K9m2A0A0_awesome-pokemon-pictures-free-download-pikachu-icon-pikachu-png-icon/
+        var img = document.createElement("img");
+        img.src = '/static/img/pikachu.png';
+        drawImage(img,x,y,50,50);
     }
 }
 
@@ -123,8 +125,11 @@ function getPosition(e) {
 
 function addEntity(entity, data) {
     world[entity] = data;
+    var new_entity = {};
+    new_entity[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    socket.send(JSON.stringify(new_entity));
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -254,6 +259,21 @@ function wsSetup() {
     socket = new WebSocket(url);
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
+        // get world, code from assignment 4
+        var url = "/world";
+        var xhr = new XMLHttpRequest();
+        xhr.responseType = 'json';
+
+        xhr.onload = function() {
+            if (xhr.readyState === 4) {
+                world = xhr.response; 
+            }
+        }
+
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8')
+        xhr.setRequestHeader('Accept', 'application/json')
+        xhr.send('');
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,7 +281,14 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?  
+            // update world
+            var data = JSON.parse(msg.data);
+            console.log(data);
+            for (var key in data) {
+                world[key] = data[key];
+            }          
+            drawNextFrame();
         } catch (e) {
             alert("socket on message: " + e);
         }
