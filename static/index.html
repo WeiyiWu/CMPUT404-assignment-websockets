@@ -284,7 +284,6 @@ function wsSetup() {
             //XXX: TODO What are you going to do here?  
             // update world
             var data = JSON.parse(msg.data);
-            console.log(data);
             for (var key in data) {
                 world[key] = data[key];
             }          
