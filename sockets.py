@@ -101,7 +101,6 @@ def read_ws(ws,client):
     try:
         while True:
             msg = ws.receive()
-            j = json.loads(msg)
             print("WS RECV: %s" % msg)
             if (msg is not None):
                 packet = json.loads(msg)
